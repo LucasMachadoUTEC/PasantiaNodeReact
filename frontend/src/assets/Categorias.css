@@ -1,14 +1,14 @@
 .categorias-container {
-  background-color: var(--color-principal1);
+  background-color: var(--color-cuarto);
   border: 1px solid var(--color-fondo);
   border-radius: 10px;
   display: flex;
   gap: 2rem;
   padding: 3rem;
-  flex-wrap: wrap; /* Permite que se envíen a la siguiente línea */
+  flex-wrap: wrap;
 }
 .controles {
-  flex: 1 1 300px; /* crece, encoge, base de 300px */
+  flex: 1 1 300px;
   min-width: 280px;
 }
 .listado {
@@ -34,7 +34,7 @@ li.selected {
 
 li.no-selected {
   outline: 1px solid var(--color-fondo);
-  background-color: var(--color-principal1);
+  background-color: var(--color-cuarto);
 }
 
 li.selected {
@@ -45,18 +45,18 @@ li.selected {
 
 .btn-intercambiar {
   background-color: var(--resaltar);
-  color: var(--color-principal1);
+  color: var(--color-cuarto);
   margin-bottom: 1rem;
   width: 100%;
 }
-.btn-agregar {
+.btn-agregar-cat {
   background-color: var(--resaltar);
-  color: var(--color-principal1);
+  color: var(--color-cuarto);
   width: 100%;
 }
-.btn-agregar:hover,
+.btn-agregar-cat:hover,
 .btn-intercambiar:hover {
-  background-color: var(--color-principal1);
+  background-color: var(--color-cuarto);
   color: var(--resaltar);
   outline: 2px solid var(--resaltar);
 }
@@ -67,6 +67,11 @@ button {
   padding: 0.5rem 1rem;
   cursor: pointer;
   color: var(--color-fondo);
+  outline: 1px solid var(--color-fondo);
+}
+
+button:hover {
+  outline: none;
 }
 button:disabled {
   cursor: not-allowed;
@@ -76,16 +81,39 @@ button:disabled:hover {
   cursor: not-allowed;
   background-color: var(--color-principal4);
   outline: none;
-  color: var(--color-principal1);
+  color: var(--color-cuarto);
 }
 
-input[type="text"] {
-  /*width: 100%;
-   margin-bottom: 0.5rem;
-  border-radius: 4px;
-  border: 1px solid var(--color-fondo);
-  box-sizing: border-box;*/
+.btn-eliminar {
+  background-color: var(--color-fondo);
+  color: var(--color-cuarto);
 }
+
+.btn-eliminar:hover {
+  background-color: var(--color-cuarto);
+  color: var(--color-fondo);
+  outline: 1px solid var(--color-fondo);
+}
+
+.accion-categoria {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.p-categoria {
+  font-style: italic;
+}
+
+.btn-agregar-cat {
+  width: 100%;
+}
+
+.div-intercambio {
+  display: flex;
+  gap: 10px;
+}
+
 @media (max-width: 700px) {
   .categorias-container {
     flex-direction: column;
@@ -94,26 +122,4 @@ input[type="text"] {
   .listado {
     min-width: 100%;
   }
-}
-
-.btn-eliminar {
-  background-color: var(--color-fondo);
-  color: var(--color-principal1);
-  /* float: right;*/
-}
-
-.btn-eliminar:hover {
-  background-color: var(--color-principal1);
-  color: var(--color-fondo);
-  outline: 1px solid var(--color-fondo);
-}
-
-.accion-categoria {
-  display: flex;
-  gap: 1rem; /* espacio entre cantidad y botón */
-  align-items: center;
-}
-
-.p-categoria {
-  font-style: italic;
 }

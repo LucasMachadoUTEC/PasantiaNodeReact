@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "../assets/ArchivoList.css";
-import axios from "./../components/axiosConfig";
+import axios from "./axiosConfig";
 
 export default function ArchivoList({
   archivos,
@@ -10,14 +10,18 @@ export default function ArchivoList({
   permisos,
   proposito,
   compartir,
+  usuarioDato,
+  setMessage,
+  setTypeMessage,
 }) {
   const [editandoId, setEditandoId] = useState(null);
   delete categorias.archivoCount;
-  // const [archivodEditado, setArchivodEditado] = useState([]);
+
   const [editData, setEditData] = useState({});
   const [categoriasParaQuitar, setCategoriasParaQuitar] = useState([]);
   const [abierto, setAbierto] = useState(false);
   const [seleccionado, setSeleccionado] = useState(null);
+  const [userSeleccionado, setUserSeleccionado] = useState(null);
 
   const [categoriaInput, setCategoriaInput] = useState("");
   const [selectedCategorias, setSelectedCategorias] = useState([]);
@@ -25,6 +29,7 @@ export default function ArchivoList({
     useState(false);
 
   // Filtrar categorías para dropdown
+
   const categoriasFiltradas = categorias.filter(
     (cat) =>
       cat.nombre.toLowerCase().includes(categoriaInput.toLowerCase()) &&
@@ -52,15 +57,63 @@ export default function ArchivoList({
   const [compartirDropdownVisible, setCompartirDropdownVisible] =
     useState(false);
 
-  // Filtrar categorías para dropdown
+  const opcionesPrivilegio = [
+    { id: "0", nombre: "Visualizador" },
+    { id: "1", nombre: "Editor" },
+  ];
+
+  const [usarOpcionesPrivilegio, setUsarOpcionesPrivilegio] =
+    useState(opcionesPrivilegio); // 'error' o 'exito'
+
+  useEffect(() => {
+    if (compartirInput.length > 3) {
+      buscarCompartir();
+    } else {
+      setComparte([]);
+    }
+  }, [compartirInput]);
+
+  function estaCompartido(archivo) {
+    for (let i = 0; i < archivo.UsuariosConAcceso.length; i++) {
+      const compartidos = archivo.UsuariosConAcceso[i];
+      if (
+        usuarioDato.id == compartidos.File_usuario.usuario_id &&
+        compartidos.File_usuario.permiso == "Editor"
+      )
+        return true;
+    }
+
+    return false;
+  }
+
+  const actualizarCompartiendo = async () => {
+    const fileId = selectedCompartir[0]?.id;
+    const compartido = await axios.get(`/api/files/compartiendo/${fileId}`);
+    const compartidoSeleccionado = await selectedCompartir.map((compartir) => ({
+      ...compartir,
+      UsuariosConAcceso: compartido.data.UsuariosConAcceso,
+    }));
+    setSelectedCompartir(compartidoSeleccionado);
+  };
 
   const agregarCompartir = (com) => {
     let continuar = true;
+
     (selectedCompartir[0]?.UsuariosConAcceso || []).map((comp) => {
-      if (com.email === comp.email) {
-        setCompartirInput("");
+      if (!continuar) return;
+      if (com === comp.email) {
+        setUsarOpcionesPrivilegio(
+          opcionesPrivilegio.filter(
+            (item) =>
+              item.nombre !==
+              selectedCompartir[0].UsuariosConAcceso[0].File_usuario.permiso
+          )
+        );
+        setCompartirInput(com);
         setSeleccionadoPrivilegio(null);
         continuar = false;
+      } else {
+        setUsarOpcionesPrivilegio(opcionesPrivilegio);
       }
     });
     if (continuar) {
@@ -69,8 +122,9 @@ export default function ArchivoList({
         if (yaExiste) {
           return prev;
         }
-        setCompartirInput(com.email);
-        return [...prev, { id: com.id, nombre: com.nombre }];
+
+        setCompartirInput(com);
+        return prev;
       });
     }
 
@@ -78,31 +132,42 @@ export default function ArchivoList({
   };
 
   const buscarCompartir = async () => {
+    setUserSeleccionado(null);
     try {
-      const email = await axios.get(`/api/usuarios/buscar/${compartirInput}`);
-
-      if (email.data.length > 0 && email.data.length <= 3) {
-        setComparte(email.data);
+      if (compartirInput) {
+        const email = await axios.get(`/api/usuarios/buscar/${compartirInput}`);
+        if (email.data.length > 0 && email.data.length <= 3) {
+          setUserSeleccionado(
+            email.data.filter((item) => item.email === compartirInput)
+          );
+          setComparte(
+            email.data.filter((item) => item.email !== compartirInput)
+          );
+        } else {
+          setComparte([]);
+        }
       } else {
         setComparte([]);
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 
-  useEffect(() => {
-    buscarCompartir();
-  }, [compartirInput]);
-
   const urlImagen = (img) => {
-    return `http://localhost:3000/${img}`;
+    return `http://${import.meta.env.VITE_HOST}:${
+      import.meta.env.VITE_PORT
+    }/${img}`;
   };
   const urlDescargar = (img) => {
-    return `http://localhost:3000/descargar/${img}`;
+    return `http://${import.meta.env.VITE_HOST}:${
+      import.meta.env.VITE_PORT
+    }/descargar/${img}`;
   };
   const urlVer = (img) => {
-    return `http://localhost:3000/${img}`;
+    return `http://${import.meta.env.VITE_HOST}:${
+      import.meta.env.VITE_PORT
+    }/${img}`;
   };
 
   const formatearFecha = (fecha) => {
@@ -110,9 +175,6 @@ export default function ArchivoList({
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
-      // hour: "2-digit",
-      // minute: "2-digit",
-      // second: "2-digit",
       hour12: false,
     };
 
@@ -126,10 +188,6 @@ export default function ArchivoList({
     { id: "1", nombre: "Privado" },
   ];
 
-  const opcionesPrivilegio = [
-    { id: "0", nombre: "Visualizador" },
-    { id: "1", nombre: "Editor" },
-  ];
   const seleccionar = (opcion) => {
     const estado = opcion.nombre;
 
@@ -152,9 +210,7 @@ export default function ArchivoList({
     setEditandoId(archivo.id);
     const nuevaFecha = new Date(archivo.fecha).toISOString().slice(0, 10);
     setEditData({ ...archivo, fecha: nuevaFecha });
-
     const acceso = await axios.get(`/api/files/conAcceso/${archivo.id}`);
-    console.log("ACCESO", acceso.data);
     setSelectedCompartir(acceso.data);
     archivo.Categoria.map((cat) => {
       const clave = {
@@ -168,12 +224,19 @@ export default function ArchivoList({
       opciones.find((opcion) => opcion.nombre === archivo.estado)
     );
 
-    //editData.fecha = formato;
     setCategoriasParaQuitar([]);
     setCompartirParaQuitar([]);
   };
 
   const cancelarEdicion = () => {
+    const archivoActualizado = {
+      ...editData,
+      Categoria: selectedCategorias,
+      UsuariosConAcceso: selectedCompartir[0]?.UsuariosConAcceso,
+    };
+    setArchivos((prev) =>
+      prev.map((a) => (a.id === editandoId ? archivoActualizado : a))
+    );
     setSelectedCategorias([]);
     setEditandoId(null);
     setEditData({});
@@ -183,20 +246,23 @@ export default function ArchivoList({
 
   const guardarEdicion = async () => {
     const fechaConHora = new Date(editData.fecha + "T08:00:00");
-    //const formato = fechaConHora.toISOString().split("T")[0];
 
     editData.fecha = fechaConHora;
 
     const archivoActualizado = {
       ...editData,
       Categoria: selectedCategorias,
-      UsuariosConAcceso: selectedCompartir[0].UsuariosConAcceso,
+      UsuariosConAcceso: selectedCompartir[0]?.UsuariosConAcceso,
     };
 
     try {
       await axios.post("/api/files/update", archivoActualizado);
+      setMessage("Archivo Editado.");
+      setTypeMessage("exito");
     } catch (err) {
       console.error("Error en la búsqueda:", err);
+      setMessage("Error al editar archivo");
+      setTypeMessage("error");
     }
     setArchivos((prev) =>
       prev.map((a) => (a.id === editandoId ? archivoActualizado : a))
@@ -216,52 +282,81 @@ export default function ArchivoList({
     );
   };
 
-  const toggleCompartirParaQuitar = (com) => {
-    setSelectedCompartir((prev) =>
-      prev.map((item) => ({
-        ...item,
-        UsuariosConAcceso: item.UsuariosConAcceso?.filter(
-          (r) => r.nombre !== com.nombre
-        ),
-      }))
-    );
-    /*
-    setSelectedCompartir(
-      selectedCompartir.filter((c) => c.nombre !== com.nombre)
-    );*/
+  const toggleCompartirParaQuitar = async (com) => {
+    try {
+      const confirmar = window.confirm(
+        `¿Estás seguro de que quieres quitar "${com.email}" del archivo compartido?`
+      );
+      if (!confirmar) {
+        // Usuario canceló, salgo de la función
+        return;
+      }
+      const datos = com.File_usuario;
+      const compartido = await axios.get(
+        `/api/files/borrar/${datos.usuario_id}/${datos.file_id}`
+      );
+      const compartidoSeleccionado = await selectedCompartir.map(
+        (compartir) => ({
+          ...compartir,
+          UsuariosConAcceso: compartido.data.UsuariosConAcceso,
+        })
+      );
+      setSelectedCompartir(compartidoSeleccionado);
+      setMessage("Usuario quitado del archivo." + com.email);
+      setTypeMessage("exito");
+    } catch (err) {
+      console.error("Error:" + err);
+      setMessage("Error al quitar el usuario");
+      setTypeMessage("error");
+    }
   };
 
-  const eliminarArchivo = async (id) => {
+  const eliminarArchivo = async (arch) => {
     try {
-      const res = await axios.delete(`/api/files/${id}`);
-      if (res.status === 204) {
-        setArchivos((prev) => prev.filter((a) => a.id !== id));
+      const confirmar = window.confirm(
+        `¿Estás seguro de que quieres eliminar el archivo "${arch.nombre}"?`
+      );
+      if (!confirmar) {
+        // Usuario canceló, salgo de la función
+        return;
       }
+
+      const res = await axios.delete(`/api/files/${arch.id}`);
+      if (res.status === 204) {
+        setArchivos((prev) => prev.filter((a) => a.id !== arch.id));
+      }
+      setMessage("Archivo eliminado.");
+      setTypeMessage("exito");
     } catch (error) {
       console.error("Error al eliminar file:", error);
+      setMessage("Invalido" + error);
+      setTypeMessage("error");
     }
   };
 
   return (
     <>
-      {permisos?.verarchivo === true && (
+      {(permisos?.verarchivo === true ||
+        proposito === "propios" ||
+        proposito === "compartidos") && (
         <div className="archivo-list-container">
-          {archivos.map((archivo) => {
+          {archivos?.map((archivo) => {
             const isEditing = editandoId === archivo.id;
             const hoy = new Date();
             const formato = hoy.toISOString().split("T")[0];
+
             return (
               <div key={archivo.id} className="archivo-item">
-                <div className="archivo-imagen">
-                  <img
-                    src={urlImagen(archivo.miniatura) || "/no-image.png"}
-                    alt={archivo.nombre}
-                    onError={(e) => {
-                      e.target.onerror = null; // previene bucle
-                      e.target.src = "/no-image.png";
-                    }}
-                  />
-                </div>
+                <img
+                  src={urlImagen(archivo.miniatura) || "/no-image.png"}
+                  alt={archivo.nombre}
+                  className="archivo-item-image"
+                  onError={(e) => {
+                    e.target.onerror = null; // previene bucle
+                    e.target.src = "/no-image.png";
+                  }}
+                />
+                <br />
                 <div className="archivo-detalles">
                   {isEditing ? (
                     <>
@@ -314,7 +409,6 @@ export default function ArchivoList({
                             </ul>
                           )}
 
-                          {/* Hidden input para enviar valor si es parte de un form */}
                           <input
                             type="hidden"
                             name="categoria"
@@ -325,6 +419,7 @@ export default function ArchivoList({
                       <div className="compartir-item">
                         <div>
                           <p>Compartir</p>
+
                           {/* Compartir archivo */}
                           <div
                             className="autocomplete-wrapper"
@@ -356,14 +451,16 @@ export default function ArchivoList({
                                       key={com.id}
                                       className="autocomplete-item"
                                       tabIndex={0}
-                                      onClick={() => agregarCompartir(com)}
+                                      onClick={() =>
+                                        agregarCompartir(com.email)
+                                      }
                                       onKeyDown={(e) => {
                                         if (
                                           e.key === "Enter" ||
                                           e.key === " "
                                         ) {
                                           e.preventDefault();
-                                          agregarCompartir(com);
+                                          agregarCompartir(com.email);
                                         }
                                       }}
                                     >
@@ -379,6 +476,7 @@ export default function ArchivoList({
                         </div>
 
                         <p>Privilegio</p>
+
                         {/* Privilegio archivo */}
                         <div
                           className="dropdown-wrapper"
@@ -398,7 +496,7 @@ export default function ArchivoList({
 
                           {abiertoPrivilegio && (
                             <ul className="dropdown-list">
-                              {opcionesPrivilegio.map((op) => (
+                              {usarOpcionesPrivilegio.map((op) => (
                                 <li
                                   key={op.id}
                                   className="dropdown-item"
@@ -409,37 +507,42 @@ export default function ArchivoList({
                               ))}
                             </ul>
                           )}
-
-                          {/* Hidden input para enviar valor si es parte de un form */}
-                          <input
-                            type="hidden"
-                            name="categoria"
-                            value={seleccionado?.id || ""}
-                          />
                         </div>
                         <button
                           className="btn-compartir"
-                          onClick={() => {
-                            setCompartirInput("");
-                            setSeleccionadoPrivilegio(null);
-                            compartir(
-                              comparte,
-                              compartirInput,
-                              editData.id,
-                              seleccionadoPrivilegio
-                            );
+                          onClick={async () => {
+                            try {
+                              setCompartirInput("");
+                              setSeleccionadoPrivilegio(null);
+                              await compartir(
+                                userSeleccionado,
+                                compartirInput,
+                                editData.id,
+                                seleccionadoPrivilegio
+                              );
+                              await actualizarCompartiendo();
+                            } catch (error) {
+                              console.error(error);
+                            }
                           }}
                         >
                           Compartir
                         </button>
                         <br />
                         <br />
+                        <p>
+                          Nota: Al cambiar los usuarios en "Compartir", los
+                          cambios se guardan automáticamente, sin necesidad de
+                          presionar el botón Guardar.
+                        </p>
+                        <br />
                         <div className="editable-file-categorias">
                           {(selectedCompartir[0]?.UsuariosConAcceso || []).map(
                             (com) => {
                               const marcadaParaQuitarCompartir =
                                 compartirParaQuitar.includes(com);
-                              console.log("datoqqq", com);
+                              const emailPermiso = `${com.email} ${com.File_usuario.permiso}`;
+
                               return (
                                 <span
                                   key={com.nombre}
@@ -451,14 +554,14 @@ export default function ArchivoList({
                                   onClick={() => toggleCompartirParaQuitar(com)}
                                   style={{ cursor: "pointer" }}
                                 >
-                                  {com.email} : {com.File_usuario.permiso}
+                                  {emailPermiso}
                                 </span>
                               );
                             }
                           )}
                         </div>
                       </div>
-                      <p>Descripcion</p>
+                      <p>Descripción</p>
                       <textarea
                         name="descripcion"
                         value={editData.descripcion}
@@ -555,7 +658,7 @@ export default function ArchivoList({
                       <p>
                         <span>
                           <strong>
-                            Categorias: <strong />
+                            Categorías: <strong />
                           </strong>
                         </span>
                         {archivo.Categoria && archivo.Categoria.length > 0 ? (
@@ -580,7 +683,7 @@ export default function ArchivoList({
                         archivo.UsuariosConAcceso.length > 0 ? (
                           archivo.UsuariosConAcceso.map((com) => (
                             <span key={com.id} className="compartir-badge">
-                              {com.email} : {com.File_usuario.permiso}
+                              {`${com.email}:${com.File_usuario.permiso}`}
                             </span>
                           ))
                         ) : (
@@ -595,7 +698,7 @@ export default function ArchivoList({
                     </>
                   )}
                 </div>
-                <div className="editable-file-buttons">
+                <div className="archivo-editable-file-buttons">
                   {isEditing ? (
                     <>
                       <button className="btn-guardar" onClick={guardarEdicion}>
@@ -626,31 +729,30 @@ export default function ArchivoList({
                           <button>Descargar</button>
                         </a>
                       </div>
-
-                      {(proposito === "propios" ||
-                        (proposito === "compartido" &&
-                          archivo?.UsuariosConAcceso[0].permiso === "Editor") ||
-                        (proposito === "todos" &&
-                          permisos.edarchivo === true)) && (
-                        <button
-                          className="btn-editar"
-                          onClick={() => iniciarEdicion(archivo)}
-                        >
-                          Editar
-                        </button>
-                      )}
-                      {(proposito === "propios" ||
-                        (proposito === "compartido" &&
-                          archivo?.UsuariosConAcceso[0].permiso === "Editor") ||
-                        (proposito === "todos" &&
-                          permisos.elarchivo === true)) && (
-                        <button
-                          className="btn-eliminar"
-                          onClick={() => eliminarArchivo(archivo.id)}
-                        >
-                          Eliminar
-                        </button>
-                      )}
+                      <div className="archivo-item-buttons">
+                        {(proposito === "propios" ||
+                          (proposito === "compartidos" &&
+                            estaCompartido(archivo)) ||
+                          (proposito === "todos" &&
+                            permisos.edarchivo === true)) && (
+                          <button
+                            className="btn-edita"
+                            onClick={() => iniciarEdicion(archivo)}
+                          >
+                            Editar
+                          </button>
+                        )}
+                        {(proposito === "propios" ||
+                          (proposito === "todos" &&
+                            permisos.elarchivo === true)) && (
+                          <button
+                            className="btn-elimina"
+                            onClick={() => eliminarArchivo(archivo)}
+                          >
+                            Eliminar
+                          </button>
+                        )}
+                      </div>
                     </>
                   )}
                 </div>

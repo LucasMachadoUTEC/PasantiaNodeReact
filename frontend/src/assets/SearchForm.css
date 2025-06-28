@@ -1,7 +1,7 @@
 /* SearchForm Formulario */
 
 .search-container {
-  background-color: var(--color-principal1);
+  background-color: var(--color-cuarto);
   padding: 0 0 1rem 0;
   margin: 15px auto;
   max-width: 60%;
@@ -11,16 +11,13 @@
   max-width: 900px;
   margin: 2rem auto;
   padding: 0 1rem;
-  /*font-family: Arial, sans-serif;*/
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
 
-/* Contenedor superior de inputs y botón */
 .top-row {
   display: flex;
-  /* justify-content: flex-start;*/
   flex-wrap: wrap;
   gap: 1rem;
   align-items: center;
@@ -28,24 +25,14 @@
 
 .top-row > input {
   flex: 1 1 200px;
-  /*min-width: 150px;
-  padding: 0.4rem 0.8rem;
-   font-size: 1rem;
-  height: 36px;
-  border: 1px solid var(--color-principal4);
-  border-radius: 4px;
-  box-sizing: border-box;*/
 }
 
 .top-row > input:focus {
   border-color: var(--resaltar);
-  /*outline: none;*/
 }
 
-/* Contenedor inferior de filtros */
 .bottom-row {
   display: flex;
-  /* margin-top: 0;*/
   flex-wrap: wrap;
   gap: 1rem;
   align-items: center;
@@ -53,9 +40,6 @@
 
 .bottom-row > *:not(.date-range) {
   flex: 1 1 20%;
-  /* min-width: 140px;
-   box-sizing: border-box;
-  order: 1;*/
 }
 
 .date-range {
@@ -64,27 +48,18 @@
   gap: 0.2rem;
   font-size: 0.9rem;
   color: var(--color-terciario4);
-  /* flex: 1 1 50%;*/
-  /* min-width: 100px;
-  box-sizing: border-box;
-  order: 3;
-  max-width: 100%;*/
 }
 
-/*no se seleccione es texto*/
 .date-range label {
   user-select: none;
 }
 
-/*aparicion de categorias*/
 .autocomplete-wrapper {
   position: relative;
 }
 
-/*estilo aparicion categorias*/
 .autocomplete-list {
   position: absolute;
-  /* top: 100%;*/
   left: 0;
   right: 0;
   max-height: 150px;
@@ -93,13 +68,8 @@
   color: var(--color-fondo);
   border: 1px solid var(--color-principal4);
   border-top: none;
-  /*z-index: 10;
-  list-style: none;
-  margin: 0;
-  padding: 0;*/
-  box-shadow: 0 4px 6px var(--color-shadow2);
-  /* border-bottom-left-radius: 4px;
-  border-bottom-right-radius: 4px;*/
+  z-index: 10;
+  box-shadow: 0 4px 6px var(--color-shadow);
 }
 
 .autocomplete-item {
@@ -111,7 +81,7 @@
 .autocomplete-item:hover,
 .autocomplete-item:focus {
   background-color: var(--resaltar);
-  color: var(--color-principal1);
+  color: var(--color-cuarto);
   outline: none;
 }
 
@@ -125,13 +95,9 @@
 
 select,
 .input-text {
-  /* width: 100%;*/
   padding: 0.5rem 0.8rem;
   font-size: 1rem;
   border: 1px solid var(--color-principal4);
-  /* border-radius: 4px;
-  transition: border-color 0.2s ease;
-  box-sizing: border-box;*/
 }
 
 select:focus,
@@ -144,25 +110,15 @@ select:focus,
 .selected-categories-container {
   font-size: 1rem;
   font-weight: 500;
-  /*display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  align-items: center;
-  justify-content: flex-start;
-  margin-top: 1rem;*/
 }
 
 .category-badge {
   display: inline-flex;
   align-items: center;
   margin: 0px 0px 5px 0px;
-  /*cursor: pointer;*/
-  /*background-color: var(--color-fondo);
-  color: var(--color-cuarto);
-  padding: 0.25rem 0.6rem;
-  border-radius: 12px;
-  font-size: 0.9rem;
-  user-select: none;*/
+}
+.category-badge button {
+  outline: none;
 }
 
 .remove-btn {
@@ -187,25 +143,14 @@ select:focus,
   padding: 0.6rem 1.2rem;
   height: 36px;
   background-color: var(--color-fondo);
-  color: var(--color-principal1);
-  /*border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background-color 0.3s ease;
-
-  order: 3;
-  align-self: stretch;
-  flex: 0 0 auto;*/
+  color: var(--color-cuarto);
 }
 
 .search-button:hover,
 .search-button:focus {
   background-color: var(--color-fondo);
-  /*  background-color: var(--color-principal1);*/
+
   color: var(--resaltar);
-  /* outline: 2px solid var(--color-fondo);*/
-  /*outline: none;*/
 }
 
 .search-header-wrapper {
@@ -215,47 +160,17 @@ select:focus,
   text-align: center;
 }
 
-/* Botón fijo arriba derecha de la ventana */
-.upload-button {
-  position: absolute; /* fijo con respecto a la ventana */
-  top: 180px; /* abajo del header (ajustar según alto header) */
-  right: 1rem;
-  padding: 0.5rem 1rem;
-  font-size: 1rem;
-  min-height: 38px;
-  background-color: var(--color-fondo);
-  color: var(--color-cuarto);
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  /*white-space: nowrap;
-  transition: background-color 0.3s ease;*/
-  z-index: 1000; /* encima de todo */
-}
-
-.upload-button:hover,
-.upload-button:focus {
-  background-color: var(--color-principal1);
-  color: var(--color-fondo);
-  outline: 2px solid var(--color-fondo);
-}
-
-/* Título centrado con espacio arriba para que no se superponga con el botón */
+/* Título centrado */
 .search-header {
   position: relative;
-  left: 50%;
-  right: 50%;
-  margin-left: -50vw;
-  margin-right: -50vw;
-
+  left: 25%;
+  margin-left: -22vw;
   background-color: var(--resaltar);
-  color: var(--color-principal1);
+  color: var(--color-cuarto);
   padding: 1rem;
   box-sizing: border-box;
-  z-index: 10;
+  border-radius: 10px;
 }
-
-/* Responsive: botón centrado debajo del título */
 
 /* Contenedor del dropdown */
 select,
@@ -276,8 +191,8 @@ select,
 select:focus,
 .dropdown-display:focus {
   padding: 0.6rem 1rem;
-  border: 1px solid #ccc;
-  background-color: #fff;
+  border: 1px solid var(--color-cuarto);
+  background-color: var(--color-cuarto);
   border-radius: 4px;
   cursor: pointer;
   user-select: none;
@@ -288,7 +203,7 @@ select:focus,
 }
 
 .dropdown-display:hover {
-  border-color: #888;
+  border-color: var(--color-fondo);
 }
 
 /* Lista desplegable */
@@ -297,14 +212,14 @@ select:focus,
   top: 100%;
   left: 0;
   right: 0;
-  background: white;
-  border: 1px solid #ccc;
+  background: var(--color-cuarto);
+  border: 1px solid var(--color-cuarto);
   border-radius: 4px;
   margin-top: 4px;
   padding: 0;
   list-style: none;
   z-index: 10;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 10px var(--color-shadow);
   max-height: 200px;
   overflow-y: auto;
 }
@@ -318,30 +233,29 @@ select:focus,
 
 .dropdown-item:hover {
   background-color: var(--resaltar);
-  color: var(--color-principal1);
+  color: var(--color-cuarto);
   outline: none;
 }
 
 /* Responsive para pantallas pequeñas */
-@media (max-width: 900px) {
+@media (max-width: 1000px) {
   .search-container {
-    /* padding: 1rem 0 1rem 0;*/
-    max-width: 90%;
+    max-width: 85%;
   }
 
   .date-range {
     flex: 1 1 100%;
     order: 10;
-    /* max-width: 100%;*/
+  }
+
+  .search-header {
+    position: relative;
+    left: 14%;
+    margin-left: -27vw;
   }
 }
 
-@media (max-width: 700px) {
-  .upload-button {
-    width: 80%;
-    right: 10%;
-  }
-
+@media (max-width: 750px) {
   .top-row > input,
   .bottom-row > * {
     flex: 1 1 100%;
@@ -350,19 +264,17 @@ select:focus,
   }
 
   .search-button {
-    /* order: 10;
-    flex: 1 1 100%;
-    align-self: stretch;*/
     margin-bottom: 0.5rem;
   }
 }
 
 @media (max-width: 600px) {
-  .upload-button {
-    width: 90%;
-    right: 5%;
-  }
   .search-container {
     max-width: 100%;
+  }
+
+  .search-header {
+    position: relative;
+    left: 5%;
   }
 }

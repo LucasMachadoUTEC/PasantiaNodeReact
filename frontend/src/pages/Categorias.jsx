@@ -1,46 +1,36 @@
 import React, { useEffect, useState } from "react";
+import { useSearchParams, useLocation, useNavigate } from "react-router-dom";
 import "../assets/Categorias.css";
 import axios from "./../components/axiosConfig";
 
-export default function Categorias(categorias1) {
-  const [categorias, setCategorias] = useState(
-    categorias1.categorias1.map(({ id, nombre, archivoCount }) => ({
-      id,
-      nombre,
-      archivoCount,
-    }))
-  );
-  const [permisos, setPermisos] = useState({
-    vercategoria: "",
-    agcategoria: "",
-    edcategoria: "",
-    elcategoria: "",
-    verarchivo: "",
-    agarchivo: "",
-    edarchivo: "",
-    elarchivo: "",
-    registrar: "",
-    verusuario: "",
-    agusuario: "",
-    edusuario: "",
-    elusuario: "",
-    verpermiso: "",
-    edpermiso: "",
-    elpermiso: "",
-    verlog: "",
-  });
-
+export default function Categorias({ permisos, setMessage, setTypeMessage }) {
+  const [categorias, setCategorias] = useState();
   const [selectedForSwap, setSelectedForSwap] = useState([]);
   const [nuevaCategoria, setNuevaCategoria] = useState("");
 
+  const [anterior, setAnterior] = useState(true);
+  const [siguiente, setSiguiente] = useState(true);
+
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [cantidad] = useState(parseInt(searchParams.get("cantidad")) || 6);
+  const [paginaActual, setPaginaActual] = useState(
+    parseInt(searchParams.get("paginaActual")) || 1
+  );
+
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const params = new URLSearchParams();
+  params.append("paginaActual", paginaActual);
+  params.append("cantidad", cantidad);
+
   useEffect(() => {
-    // Obtener información de usuario
-    obtenerPermisos();
+    actualizarCategorias(paginaActual);
   }, []);
 
   const toggleSelect = (cat) => {
-    if (selectedForSwap.includes(cat)) {
-      setSelectedForSwap(selectedForSwap.filter((c) => c !== cat));
+    if (selectedForSwap.some((item) => item.id === cat.id)) {
+      setSelectedForSwap(selectedForSwap.filter((c) => c.id !== cat.id));
     } else {
       if (selectedForSwap.length < 2) {
         setSelectedForSwap([...selectedForSwap, cat]);
@@ -48,35 +38,52 @@ export default function Categorias(categorias1) {
     }
   };
 
-  const obtenerPermisos = async () => {
+  const actualizarCategorias = async (pagina) => {
     try {
-      const response = await axios.get("/api/permisos/usuario");
-      setPermisos(response.data);
-    } catch (error) {
-      console.log(error);
-    }
-  };
+      navigate("/perfil/permiso/categorias");
+      const res = await axios.get("/api/categorias/conCantidad", {
+        params,
+      });
 
-  const actualizarCategorias = async () => {
-    try {
-      const res = await axios.get("/api/categorias/conCantidad");
-
-      setCategorias(res.data);
+      if (location.pathname !== "/perfil/permiso/categorias") {
+        navigate({
+          pathname: "/perfil/permiso/categorias",
+          search: `?params=${params}`,
+        });
+      } else {
+        setSearchParams({ params });
+      }
+      setSiguiente(true);
+      setAnterior(true);
+      if (res.data.count / cantidad - pagina > 0) setSiguiente(false);
+      if (pagina > 1) setAnterior(false);
+      setCategorias(res.data.data);
     } catch (err) {
       console.error("Error al cargar categorías:", err);
     }
   };
 
-  const eliminarCategoria = async (e, id) => {
+  const eliminarCategoria = async (e, cat) => {
     e.stopPropagation();
     try {
-      await axios.delete(`/api/categorias/${id}`);
+      const confirmar = window.confirm(
+        `¿Estás seguro de que quieres eliminar la categoría "${cat.nombre}"?`
+      );
+      if (!confirmar) {
+        // Usuario canceló, salgo de la función
+        return;
+      }
 
-      actualizarCategorias();
+      await axios.delete(`/api/categorias/${cat.id}`);
+      actualizarCategorias(paginaActual);
 
       setSelectedForSwap([]);
+      setMessage("Categoria eliminada");
+      setTypeMessage("exito");
     } catch (err) {
       console.error("Error al cargar categorías:", err);
+      setMessage("Error el eliminar");
+      setTypeMessage("error");
     }
   };
 
@@ -86,42 +93,52 @@ export default function Categorias(categorias1) {
       return;
     }
     const [cat1, cat2] = selectedForSwap;
+    try {
+      await axios.post("/api/categorias/reemplazar", {
+        primer: cat1.id,
+        segundo: cat2.id,
+      });
+      setMessage("Se intercambiaron");
+      setTypeMessage("exito");
+    } catch (err) {
+      console.error(err);
+      setMessage("Error el intercambiar");
+      setTypeMessage("error");
+    }
 
-    await axios.post("/api/categorias/reemplazar", {
-      primer: cat1.id,
-      segundo: cat2.id,
-    });
+    actualizarCategorias(paginaActual);
 
-    actualizarCategorias();
-
-    /*
-
-    if (idx1 === -1 || idx2 === -1) return;
-
-    const nuevasCategorias = [...categorias];
-    nuevasCategorias[idx1] = cat2;
-    nuevasCategorias[idx2] = cat1;
-
-    setCategorias(nuevasCategorias);*/
     setSelectedForSwap([]);
   };
 
   const agregarCategoria = async () => {
     const catTrimmed = nuevaCategoria.trim();
+
     if (!catTrimmed) return alert("Ingresa un nombre válido");
-    if (categorias.includes(catTrimmed)) return alert("Categoría ya existe");
+    if (categorias && categorias.includes(catTrimmed))
+      return alert("Categoría ya existe");
 
     try {
       await axios.post("/api/categorias", { nombre: catTrimmed });
-      actualizarCategorias();
+      actualizarCategorias(paginaActual);
       toggleSelect();
-      setCategorias([...categorias, catTrimmed]);
       setSelectedForSwap([]);
       setNuevaCategoria("");
+      setMessage("Categoria agregada");
+      setTypeMessage("exito");
     } catch (error) {
-      alert(error);
+      setMessage("Error:" + error);
+      setTypeMessage("error");
     }
   };
+
+  const cambiarpagina = async (pagina) => {
+    params.delete("paginaActual");
+    params.append("paginaActual", pagina);
+
+    actualizarCategorias(pagina);
+  };
+
   return (
     <>
       <div className="categorias-container">
@@ -158,7 +175,7 @@ export default function Categorias(categorias1) {
                 onChange={(e) => setNuevaCategoria(e.target.value)}
                 required
               />
-              <button className="btn-agregar" onClick={agregarCategoria}>
+              <button className="btn-agregar-cat" onClick={agregarCategoria}>
                 Agregar Categoría
               </button>
             </>
@@ -167,21 +184,58 @@ export default function Categorias(categorias1) {
 
         {/* Derecha: listado de categorías */}
         <div className="listado">
-          <h3>Categorías</h3>
+          <div className="div-intercambio">
+            <h3>Categorías</h3>
+            {selectedForSwap.length !== 0 && (
+              <button
+                onClick={() => {
+                  setSelectedForSwap([]);
+                }}
+              >
+                Limpiar
+              </button>
+            )}
+          </div>
           <br />
           <p>
-            Se intercambiaran las realciones de:{" "}
+            Se intercambiaran las realciones:{" "}
             {selectedForSwap.length === 0
-              ? "Ninguna"
-              : selectedForSwap.map((p) => p.nombre).join(" hacia ")}
+              ? "Sin seleccionar"
+              : selectedForSwap.map((p) => `"${p.nombre}"`).join(" hacia ")}
           </p>
+          {!(siguiente && anterior) && (
+            <div className="div-paginar">
+              <button
+                onClick={() => {
+                  cambiarpagina(paginaActual - 1);
+                  setPaginaActual(paginaActual - 1);
+                }}
+                disabled={anterior}
+              >
+                Anterior
+              </button>
+              <p>{paginaActual}</p>
+              <button
+                onClick={() => {
+                  cambiarpagina(paginaActual + 1);
+                  setPaginaActual(paginaActual + 1);
+                }}
+                disabled={siguiente}
+              >
+                Siguiente
+              </button>
+            </div>
+          )}
           <br />
+
           <ul>
-            {categorias.map((cat) => (
+            {categorias?.map((cat) => (
               <li
                 key={cat.nombre}
                 className={
-                  selectedForSwap.includes(cat) ? "selected" : "no-selected"
+                  selectedForSwap.some((selected) => selected.id === cat.id)
+                    ? "selected"
+                    : "no-selected"
                 }
                 onClick={() => toggleSelect(cat)}
                 title="Click para seleccionar para intercambio"
@@ -191,7 +245,7 @@ export default function Categorias(categorias1) {
                   <p className="p-categoria">{cat.archivoCount}</p>
                   {permisos?.elcategoria === true && (
                     <button
-                      onClick={(e) => eliminarCategoria(e, cat.id)}
+                      onClick={(e) => eliminarCategoria(e, cat)}
                       className="btn-eliminar"
                       title=""
                     >

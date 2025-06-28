@@ -1,29 +1,27 @@
-import React, { useState, useEffect } from "react";
 import "../assets/List.css";
 
 export default function List({ data, abrirMedia }) {
   const urlImagen = (img) => {
-    return `http://localhost:3000/${img}`;
+    return `http://${import.meta.env.VITE_HOST}:${
+      import.meta.env.VITE_PORT
+    }/${img}`;
   };
   const urlDescargar = (img) => {
-    return `http://localhost:3000/descargar/${img}`;
+    return `http://${import.meta.env.VITE_HOST}:${
+      import.meta.env.VITE_PORT
+    }/descargar/${img}`;
   };
   const urlVer = (img) => {
-    return `http://localhost:3000/${img}`;
+    return `http://${import.meta.env.VITE_HOST}:${
+      import.meta.env.VITE_PORT
+    }/${img}`;
   };
-
-  useEffect(() => {
-    setPaginaActual(1);
-  }, [data]);
 
   const formatearFecha = (fecha) => {
     const opciones = {
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
-      // hour: "2-digit",
-      // minute: "2-digit",
-      // second: "2-digit",
       hour12: false,
     };
 
@@ -32,30 +30,10 @@ export default function List({ data, abrirMedia }) {
       .replace(",", "");
   };
 
-  const [paginaActual, setPaginaActual] = useState(1);
-  const elementosPorPagina = 10;
-
-  const indiceInicio = (paginaActual - 1) * elementosPorPagina;
-  const indiceFin = indiceInicio + elementosPorPagina;
-  const usuariosAMostrar = data.slice(indiceInicio, indiceFin);
-  const totalPaginas = Math.ceil(data.length / elementosPorPagina);
-
   return (
     <>
-      <div className="div-paginar">
-        {Array.from({ length: totalPaginas }, (_, i) => (
-          <button
-            key={i}
-            onClick={() => setPaginaActual(i + 1)}
-            disabled={paginaActual === i + 1}
-          >
-            {i + 1}
-          </button>
-        ))}
-      </div>
-      <br />
       <div className="list-container">
-        {usuariosAMostrar.map((doc) => (
+        {data.map((doc) => (
           <div key={doc.id} className="list-item">
             <img
               src={urlImagen(doc.miniatura)}
@@ -84,7 +62,7 @@ export default function List({ data, abrirMedia }) {
               <div>
                 <span>
                   <strong>
-                    Categorias: <strong />
+                    Categorías: <strong />
                   </strong>
                 </span>
                 {doc.Categoria && doc.Categoria.length > 0 ? (
@@ -99,43 +77,25 @@ export default function List({ data, abrirMedia }) {
                   </>
                 )}
               </div>
-
-              <p
-                style={{
-                  marginTop: "0.5rem",
-                  fontStyle: "italic",
-                  color: "#555",
-                }}
-              >
-                {doc.descripcion}
-              </p>
+              <p className="archivo-descripcion">{doc.descripcion}</p>
             </div>
 
             <div className="list-item-buttons">
               {doc.tipo !== "zip" && (
                 <button
                   type="button"
-                  onClick={() => abrirMedia(urlVer(doc.archivo))}
+                  onClick={() => {
+                    abrirMedia(urlVer(doc.archivo));
+                  }}
                 >
                   Visualizar
                 </button>
               )}
-              <a href={urlDescargar(doc.archivo)} download="ejemplo.pdf">
+              <a href={urlDescargar(doc.archivo)}>
                 <button>Descargar</button>
               </a>
             </div>
           </div>
-        ))}
-      </div>
-      <div className="div-paginar">
-        {Array.from({ length: totalPaginas }, (_, i) => (
-          <button
-            key={i}
-            onClick={() => setPaginaActual(i + 1)}
-            disabled={paginaActual === i + 1}
-          >
-            {i + 1}
-          </button>
         ))}
       </div>
     </>

@@ -33,7 +33,7 @@ export default function SubirArchivo({
   const agregarCategoria = (cat) => {
     const nuevas = [...selectedCategorias, { id: cat.id, nombre: cat.nombre }];
     setSelectedCategorias(nuevas);
-    setCategoriasSeleccionadas(nuevas.map((c) => c.id)); // IDs solamente
+    setCategoriasSeleccionadas(nuevas.map((c) => c.id));
     setCategoriaInput("");
     setCategoriaDropdownVisible(false);
   };
@@ -58,7 +58,7 @@ export default function SubirArchivo({
       />
       <input
         type="text"
-        placeholder="Descripcion"
+        placeholder="Descripción"
         value={descripcion}
         onChange={(e) => setDescripcion(e.target.value)}
         className="input-text"
@@ -128,7 +128,7 @@ export default function SubirArchivo({
         Subir Archivos
       </button>
       <p className="nota-subida">
-        Nota: Despues de subir los archivos se podran realizar mas cambios.
+        Nota: Después de subir los archivos se podrán realizar más cambios.
       </p>
     </form>
   );

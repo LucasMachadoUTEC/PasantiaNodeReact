@@ -5,7 +5,8 @@ const getFileType = (url) => {
   const extension = url.split(".").pop().toLowerCase();
 
   if (["mp4", "webm", "ogg"].includes(extension)) return "video";
-  if (["jpg", "jpeg", "png", "gif", "webp"].includes(extension)) return "image";
+  if (["jpg", "jpeg", "png", "gif", "webp", "svg"].includes(extension))
+    return "image";
   if (["pdf", "docx", "doc"].includes(extension)) return "file";
 
   return "unknown";
@@ -15,7 +16,6 @@ const MediaOverlay = ({ url, onClose }) => {
   if (!url) return null;
   const type = getFileType(url);
 
-  // Esta función evita que el clic en el contenido cierre el overlay
   const onContentClick = (e) => {
     e.stopPropagation();
   };
